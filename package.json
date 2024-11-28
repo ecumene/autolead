@@ -1,6 +1,7 @@
 {
   "dependencies": {
-    "@octokit/rest": "^21.0.2"
+    "@octokit/rest": "^21.0.2",
+    "openai": "^4.73.1"
   },
   "devDependencies": {
     "@types/node": "^22.10.0"
