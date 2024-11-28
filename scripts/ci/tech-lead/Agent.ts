@@ -67,6 +67,14 @@ export default class Agent {
     ...messages: ChatCompletionMessageParam[]
   ): AsyncGenerator<string> {
     while (true) {
+      console.log("Creating chat completion", [
+        {
+          role: "system",
+          content: this.prompt,
+        },
+        ...this.messages,
+        ...messages,
+      ]);
       const completion = await this.client.chat.completions.create({
         model: "gpt-4o",
         tools: this.tools,
