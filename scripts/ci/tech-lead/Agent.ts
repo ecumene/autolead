@@ -30,13 +30,11 @@ export type AgentOptions = {
 export default class Agent {
   private messages: Array<ChatCompletionMessageParam>;
 
-  private prompt: string;
-
   private client: OpenAI;
 
   private tools: Array<Tool<any, any>>;
 
-  private onFunctionCall?: (
+  public onFunctionCall?: (
     called: ChatCompletionMessageToolCall,
     params: unknown
   ) => void;
@@ -50,7 +48,6 @@ export default class Agent {
     tools,
     ...rest
   }: AgentOptions) {
-    this.prompt = prompt;
     this.messages = [
       {
         role: "system",
@@ -67,14 +64,6 @@ export default class Agent {
     ...messages: ChatCompletionMessageParam[]
   ): AsyncGenerator<string> {
     while (true) {
-      console.log("Creating chat completion", [
-        {
-          role: "system",
-          content: this.prompt,
-        },
-        ...this.messages,
-        ...messages,
-      ]);
       const completion = await this.client.chat.completions.create({
         model: "gpt-4o",
         tools: this.tools,
@@ -85,8 +74,8 @@ export default class Agent {
       let message = {} as ChatCompletionMessage;
       for await (const chunk of completion) {
         message = this.messageReducer(message, chunk);
-        yield message.content ?? "";
       }
+      yield message.content ?? "";
       this.messages.push(message);
       this.callbacks.onMessage?.(message);
 
