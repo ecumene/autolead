@@ -16,13 +16,12 @@ SHA: ${latestCommit.sha}`;
 
 TechLead.addListener({
   onFunctionCall: (toolCall, params) => {
-    console.log("Tool call: ", toolCall);
-    console.log("\nParameters:");
-    const entries = Object.entries(JSON.parse(params as string));
-    if (entries.length > 0) {
+    console.log("Tool call: ", toolCall.function.name);
+    const parsedParams = Object.entries(JSON.parse(params as string));
+    if (parsedParams.length > 0) {
       console.log("\n| Parameter | Value |");
       console.log("|-----------|--------|");
-      entries.forEach(([key, value]) => {
+      parsedParams.forEach(([key, value]) => {
         console.log(`| ${key} | ${value} |`);
       });
     }
