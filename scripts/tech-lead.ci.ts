@@ -1,46 +1,29 @@
-import { Octokit } from "@octokit/rest";
+import { OpenAI } from "openai";
 
-async function getRepoIssuesAndPRs() {
-  const octokit = new Octokit({
-    auth: process.env["GITHUB_TOKEN"],
+const client = new OpenAI();
+
+export async function summarizeIssuesAndPRs(issues: any[], prs: any[]) {
+  const prompt = `
+    You are a tech lead at a company. You are given a list of issues and pull requests.
+    Please summarize the issues and pull requests in a way that is easy for the tech lead to understand.
+  `;
+
+  const response = await client.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      { role: "system", content: prompt },
+      {
+        role: "user",
+        content: issues
+          .map((issue) => `#${issue.number} - ${issue.title}`)
+          .join("\n"),
+      },
+      {
+        role: "user",
+        content: prs.map((pr) => `#${pr.number} - ${pr.title}`).join("\n"),
+      },
+    ],
   });
 
-  const owner = process.env["GITHUB_REPOSITORY"]?.split("/")[0] || "";
-  const repo = process.env["GITHUB_REPOSITORY"]?.split("/")[1] || "";
-
-  try {
-    // Get open issues
-    const issues = await octokit.issues.listForRepo({
-      owner,
-      repo,
-      state: "open",
-      per_page: 100,
-    });
-
-    // Get open PRs
-    const pulls = await octokit.pulls.list({
-      owner,
-      repo,
-      state: "open",
-      per_page: 100,
-    });
-
-    console.log("Open Issues:");
-    issues.data.forEach((issue) => {
-      if (!issue.pull_request) {
-        // Filter out PRs from issues list
-        console.log(`#${issue.number} - ${issue.title}`);
-      }
-    });
-
-    console.log("\nOpen Pull Requests:");
-    pulls.data.forEach((pr) => {
-      console.log(`#${pr.number} - ${pr.title}`);
-    });
-  } catch (error) {
-    console.error("Error fetching issues and PRs:", error);
-    process.exit(1);
-  }
+  return response.choices[0].message.content;
 }
-
-getRepoIssuesAndPRs();
