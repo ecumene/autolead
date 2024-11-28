@@ -14,22 +14,25 @@ Diff: ${latestCommit.diff
   .join("\n")}
 SHA: ${latestCommit.sha}`;
 
-TechLead.onFunctionCall = (toolCall, params) => {
-  console.log("Tool call: ", toolCall);
-  console.log("\nParameters:");
-  const entries = Object.entries(params as object);
-  if (entries.length > 0) {
-    console.log("\n| Parameter | Value |");
-    console.log("|-----------|--------|");
-    entries.forEach(([key, value]) => {
-      console.log(`| ${key} | ${value} |`);
-    });
-  }
-};
+TechLead.addListener({
+  onFunctionCall: (toolCall, params) => {
+    console.log("Tool call: ", toolCall);
+    console.log("\nParameters:");
+    const entries = Object.entries(params as object);
+    if (entries.length > 0) {
+      console.log("\n| Parameter | Value |");
+      console.log("|-----------|--------|");
+      entries.forEach(([key, value]) => {
+        console.log(`| ${key} | ${value} |`);
+      });
+    }
+  },
+  onMessage: (message) => {
+    console.log(message);
+  },
+});
 
-for await (const message of TechLead.chat({
+TechLead.chat({
   role: "user",
   content: `I have a new commit:\n${formattedCommit}`,
-})) {
-  console.log(message);
-}
+});

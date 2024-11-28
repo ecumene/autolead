@@ -34,11 +34,6 @@ export default class Agent {
 
   private tools: Array<Tool<any, any>>;
 
-  public onFunctionCall?: (
-    called: ChatCompletionMessageToolCall,
-    params: unknown
-  ) => void;
-
   private callbacks: AgentOptionCallbacks;
 
   constructor({
@@ -74,8 +69,8 @@ export default class Agent {
       let message = {} as ChatCompletionMessage;
       for await (const chunk of completion) {
         message = this.messageReducer(message, chunk);
+        yield message.content ?? "";
       }
-      yield message.content ?? "";
       this.messages.push(message);
       this.callbacks.onMessage?.(message);
 
@@ -152,5 +147,9 @@ export default class Agent {
     );
     if (!tool) throw new Error("No tool found");
     return tool.handler(args);
+  }
+
+  public addListener(listener: AgentOptionCallbacks) {
+    this.callbacks = { ...this.callbacks, ...listener };
   }
 }
