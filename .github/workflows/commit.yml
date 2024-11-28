@@ -7,8 +7,6 @@ on:
 
 jobs:
   build:
-    # Skip if the commit has more than one parent (merge commits have 2+ parents)
-    if: ${{ github.event.pull_request.merged != true && github.event.head_commit.parents.length == 1 }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
