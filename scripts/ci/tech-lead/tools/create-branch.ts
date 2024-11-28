@@ -14,7 +14,8 @@ const createBranch: Tool<
       properties: {
         name: {
           type: "string",
-          description: "Name of the branch to create",
+          description:
+            "Name of the branch to create (e.g. 'feature/my-feature' or 'fix/issue-123') cannot be the name of an existing branch, commit, or tag",
         },
         sha: {
           type: "string",
