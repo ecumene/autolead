@@ -32,7 +32,7 @@ TechLead.addListener({
   },
 });
 
-TechLead.chat({
+await TechLead.chat({
   role: "user",
   content: `I have a new commit:\n${formattedCommit}`,
 });
