@@ -78,27 +78,16 @@ export default class Agent {
       const completion = await this.client.chat.completions.create({
         model: "gpt-4o",
         tools: this.tools,
-        messages: [
-          {
-            role: "system",
-            content: this.prompt,
-          },
-          ...this.messages,
-          ...messages,
-        ],
+        messages: [...this.messages, ...messages],
         stream: true,
       });
 
       let message = {} as ChatCompletionMessage;
-      // eslint-disable-next-line no-await-in-loop
       for await (const chunk of completion) {
         message = this.messageReducer(message, chunk);
         yield message.content ?? "";
       }
-      messages.push({
-        role: "assistant",
-        content: message.content,
-      });
+      this.messages.push(message);
       this.callbacks.onMessage?.(message);
 
       if (!message.tool_calls) {
@@ -139,7 +128,7 @@ export default class Agent {
           acc[key] = value;
         } else if (Array.isArray(acc[key]) && Array.isArray(value)) {
           const accArray = acc[key];
-          for (let i = 0; i < value.length; i += 1) {
+          for (let i = 0; i < value.length; i++) {
             const { index, ...chunkTool } = value[i];
             if (index - accArray.length > 1) {
               throw new Error(
@@ -154,7 +143,13 @@ export default class Agent {
       }
       return acc;
     };
-    return reduce(previous, item.choices[0]!.delta) as ChatCompletionMessage;
+
+    const choice = item.choices[0];
+    if (!choice) {
+      // chunk contains information about usage and token counts
+      return previous;
+    }
+    return reduce(previous, choice.delta) as ChatCompletionMessage;
   }
 
   private callTool(tool_call: ChatCompletionMessageToolCall): Promise<unknown> {
