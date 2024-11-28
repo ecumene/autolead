@@ -102,7 +102,7 @@ export default class Agent {
           name: toolCall.function.name,
           content: JSON.stringify(result),
         };
-        messages.push(newMessage);
+        this.messages.push(newMessage);
       }
     }
   }
