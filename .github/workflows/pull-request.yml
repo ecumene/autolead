@@ -1,9 +1,6 @@
 name: Pull Request
 
 on:
-  push:
-    branches-ignore:
-      - main
   pull_request:
     types: [opened]
 
@@ -19,4 +16,8 @@ jobs:
       - name: Install dependencies
         run: bun install
       - name: Run entry CI script
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_SHA: ${{ github.sha }}
         run: bun scripts/ci/pull-request.ci.ts
