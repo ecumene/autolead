@@ -30,7 +30,7 @@ TechLead.addListener({
     console.log("Function result: ", result);
   },
   onMessage: (message) => {
-    console.log(message);
+    console.log(`${message.role}: ${message.content}`);
   },
 });
 
