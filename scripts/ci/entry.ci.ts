@@ -32,7 +32,9 @@ TechLead.addListener({
   },
 });
 
-await TechLead.chat({
+for await (const _message of await TechLead.chat({
   role: "user",
   content: `I have a new commit:\n${formattedCommit}`,
-});
+})) {
+  // do nothing
+}
