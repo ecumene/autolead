@@ -18,7 +18,7 @@ TechLead.addListener({
   onFunctionCall: (toolCall, params) => {
     console.log("Tool call: ", toolCall);
     console.log("\nParameters:");
-    const entries = Object.entries(params as object);
+    const entries = Object.entries(JSON.parse(params as string));
     if (entries.length > 0) {
       console.log("\n| Parameter | Value |");
       console.log("|-----------|--------|");
@@ -26,6 +26,9 @@ TechLead.addListener({
         console.log(`| ${key} | ${value} |`);
       });
     }
+  },
+  onFunctionResult: (result) => {
+    console.log("Function result: ", result);
   },
   onMessage: (message) => {
     console.log(message);

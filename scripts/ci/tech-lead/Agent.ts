@@ -17,6 +17,7 @@ export type AgentOptionCallbacks = {
     called: ChatCompletionMessageToolCall,
     params: unknown
   ) => void;
+  onFunctionResult?: (result: unknown) => void;
   onMessage?: (chat: ChatCompletionMessage) => void;
 };
 
@@ -136,7 +137,9 @@ export default class Agent {
     return reduce(previous, choice.delta) as ChatCompletionMessage;
   }
 
-  private callTool(tool_call: ChatCompletionMessageToolCall): Promise<unknown> {
+  private async callTool(
+    tool_call: ChatCompletionMessageToolCall
+  ): Promise<unknown> {
     this.callbacks.onFunctionCall?.(tool_call, tool_call.function.arguments);
     if (tool_call.type !== "function")
       throw new Error(`Unexpected tool_call type: ${tool_call.type}`);
@@ -146,7 +149,9 @@ export default class Agent {
       (t) => t.function.name === tool_call.function.name
     );
     if (!tool) throw new Error("No tool found");
-    return tool.handler(args);
+    const result = await tool.handler(args);
+    this.callbacks.onFunctionResult?.(result);
+    return result;
   }
 
   public addListener(listener: AgentOptionCallbacks) {
