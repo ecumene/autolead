@@ -16,7 +16,7 @@ These things suck. What if we could make an AI do it?
 2. An LLM will try to create a PR using your git commits.
 3. It will link that PR to a Github Issue if one matches.
 4. If your PR appears to address the issue, it will close it.
-6. It will open new issues if need-be.
+5. It will open new issues if need-be.
 
 ## How to set it up
 
@@ -24,8 +24,3 @@ These things suck. What if we could make an AI do it?
 - [ ] Enable Github Actions for the repo
 - [ ] Set an OPENAI_API_KEY in your repo's settings
 - [ ] Enjoy total coding agency
-
-## Is this a joke?
-
-Partly https://jestersprivilege.ca/
-
