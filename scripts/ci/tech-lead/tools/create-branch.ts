@@ -3,7 +3,7 @@ import type { Tool } from "../Agent";
 
 const createBranch: Tool<
   { name: string; sha?: string },
-  { name: string; sha: string }
+  { name: string; sha: string } | { error: unknown }
 > = {
   type: "function",
   function: {
@@ -27,26 +27,30 @@ const createBranch: Tool<
     },
   },
   handler: async ({ name, sha }) => {
-    if (!sha) {
-      const main = await octokit.repos.getBranch({
+    try {
+      if (!sha) {
+        const main = await octokit.repos.getBranch({
+          owner,
+          repo,
+          branch: "main",
+        });
+        sha = main.data.commit.sha;
+      }
+
+      const ref = await octokit.git.createRef({
         owner,
         repo,
-        branch: "main",
+        ref: `refs/heads/${name}`,
+        sha,
       });
-      sha = main.data.commit.sha;
+
+      return {
+        name,
+        sha: ref.data.object.sha,
+      };
+    } catch (error) {
+      return { error };
     }
-
-    const ref = await octokit.git.createRef({
-      owner,
-      repo,
-      ref: `refs/heads/${name}`,
-      sha,
-    });
-
-    return {
-      name,
-      sha: ref.data.object.sha,
-    };
   },
 };
 

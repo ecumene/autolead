@@ -4,15 +4,16 @@ import type { Tool } from "../Agent";
 
 const reviewPR: Tool<
   { number: number; issueNumber: number },
-  {
-    approved: boolean;
-    reason: string;
-    suggestedChanges?: Array<{
-      file: string;
-      line?: number;
-      suggestion: string;
-    }>;
-  }
+  | {
+      approved: boolean;
+      reason: string;
+      suggestedChanges?: Array<{
+        file: string;
+        line?: number;
+        suggestion: string;
+      }>;
+    }
+  | { error: unknown }
 > = {
   type: "function",
   function: {
@@ -34,60 +35,67 @@ const reviewPR: Tool<
     },
   },
   handler: async ({ number, issueNumber }) => {
-    const files = await octokit.pulls.listFiles({
-      owner,
-      repo,
-      pull_number: number,
-    });
-
-    const issue = await octokit.issues.get({
-      owner,
-      repo,
-      issue_number: issueNumber,
-    });
-
-    const diffContent = files.data
-      .map((file) => `${file.filename} (${file.status})\n${file.patch || ""}`)
-      .join("\n\n");
-
-    const review = await reviewPullRequest(diffContent, issue.data.body ?? "");
-
-    if (!review) {
-      return {
-        approved: false,
-        reason: "No review returned",
-      };
-    }
-
-    // Create the review on GitHub
-    await octokit.pulls.createReview({
-      owner,
-      repo,
-      pull_number: number,
-      body: review.reason,
-      event: "COMMENT",
-      comments: review.suggestedChanges?.map((change) => ({
-        path: change.file,
-        line: change.line || 1,
-        body: change.suggestion,
-      })),
-    });
-
-    // If approved, merge the PR
-    if (review.approved) {
-      await octokit.pulls.merge({
+    try {
+      const files = await octokit.pulls.listFiles({
         owner,
         repo,
         pull_number: number,
-        merge_method: "squash", // You can change this to 'merge' or 'rebase' if preferred
       });
-    }
 
-    return {
-      approved: review.approved,
-      reason: review.reason,
-      suggestedChanges: review.suggestedChanges,
-    };
+      const issue = await octokit.issues.get({
+        owner,
+        repo,
+        issue_number: issueNumber,
+      });
+
+      const diffContent = files.data
+        .map((file) => `${file.filename} (${file.status})\n${file.patch || ""}`)
+        .join("\n\n");
+
+      const review = await reviewPullRequest(
+        diffContent,
+        issue.data.body ?? ""
+      );
+
+      if (!review) {
+        return {
+          approved: false,
+          reason: "No review returned",
+        };
+      }
+
+      // Create the review on GitHub
+      await octokit.pulls.createReview({
+        owner,
+        repo,
+        pull_number: number,
+        body: review.reason,
+        event: "COMMENT",
+        comments: review.suggestedChanges?.map((change) => ({
+          path: change.file,
+          line: change.line || 1,
+          body: change.suggestion,
+        })),
+      });
+
+      // If approved, merge the PR
+      if (review.approved) {
+        await octokit.pulls.merge({
+          owner,
+          repo,
+          pull_number: number,
+          merge_method: "squash", // You can change this to 'merge' or 'rebase' if preferred
+        });
+      }
+
+      return {
+        approved: review.approved,
+        reason: review.reason,
+        suggestedChanges: review.suggestedChanges,
+      };
+    } catch (error) {
+      return { error };
+    }
   },
 };
 

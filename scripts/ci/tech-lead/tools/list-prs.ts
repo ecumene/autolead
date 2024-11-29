@@ -1,7 +1,10 @@
 import { octokit, owner, repo } from "../../../octokit.service";
 import type { Tool } from "../Agent";
 
-const listPRs: Tool<void, Array<{ number: number; title: string }>> = {
+const listPRs: Tool<
+  void,
+  Array<{ number: number; title: string }> | { error: unknown }
+> = {
   type: "function",
   function: {
     name: "list_prs",
@@ -13,15 +16,19 @@ const listPRs: Tool<void, Array<{ number: number; title: string }>> = {
     },
   },
   handler: async () => {
-    const { data: prs } = await octokit.pulls.list({
-      owner,
-      repo,
-      state: "open",
-    });
-    return prs.map((pr) => ({
-      number: pr.number,
-      title: pr.title,
-    }));
+    try {
+      const { data: prs } = await octokit.pulls.list({
+        owner,
+        repo,
+        state: "open",
+      });
+      return prs.map((pr) => ({
+        number: pr.number,
+        title: pr.title,
+      }));
+    } catch (error) {
+      return { error };
+    }
   },
 };
 

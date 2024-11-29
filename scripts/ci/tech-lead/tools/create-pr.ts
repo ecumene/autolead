@@ -3,7 +3,7 @@ import type { Tool } from "../Agent";
 
 const createPR: Tool<
   { issueNumber: number; title: string; body: string; head: string },
-  { number: number; url: string }
+  { number: number; url: string } | { error: unknown }
 > = {
   type: "function",
   function: {

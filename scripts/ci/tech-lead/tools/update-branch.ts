@@ -3,7 +3,7 @@ import type { Tool } from "../Agent";
 
 const updateBranch: Tool<
   { name: string; sha: string },
-  { name: string; sha: string }
+  { name: string; sha: string } | { error: unknown }
 > = {
   type: "function",
   function: {
@@ -25,18 +25,22 @@ const updateBranch: Tool<
     },
   },
   handler: async ({ name, sha }) => {
-    await octokit.git.updateRef({
-      owner,
-      repo,
-      ref: `refs/heads/${name}`,
-      sha,
-      force: true,
-    });
+    try {
+      await octokit.git.updateRef({
+        owner,
+        repo,
+        ref: `refs/heads/${name}`,
+        sha,
+        force: true,
+      });
 
-    return {
-      name,
-      sha,
-    };
+      return {
+        name,
+        sha,
+      };
+    } catch (error) {
+      return { error };
+    }
   },
 };
 

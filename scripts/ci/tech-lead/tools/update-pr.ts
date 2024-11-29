@@ -3,7 +3,7 @@ import type { Tool } from "../Agent";
 
 const updatePR: Tool<
   { prNumber: number; title?: string; body?: string },
-  { number: number; url: string }
+  { number: number; url: string } | { error: unknown }
 > = {
   type: "function",
   function: {
@@ -29,18 +29,22 @@ const updatePR: Tool<
     },
   },
   handler: async ({ prNumber, title, body }) => {
-    const pr = await octokit.pulls.update({
-      owner,
-      repo,
-      pull_number: prNumber,
-      ...(title && { title }),
-      ...(body && { body }),
-    });
+    try {
+      const pr = await octokit.pulls.update({
+        owner,
+        repo,
+        pull_number: prNumber,
+        ...(title && { title }),
+        ...(body && { body }),
+      });
 
-    return {
-      number: pr.data.number,
-      url: pr.data.html_url,
-    };
+      return {
+        number: pr.data.number,
+        url: pr.data.html_url,
+      };
+    } catch (error) {
+      return { error };
+    }
   },
 };
 
