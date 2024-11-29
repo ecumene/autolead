@@ -65,7 +65,7 @@ const reviewPR: Tool<
       repo,
       pull_number: number,
       body: review.reason,
-      event: review.approved ? "APPROVE" : "REQUEST_CHANGES",
+      event: "COMMENT",
       comments: review.suggestedChanges?.map((change) => ({
         path: change.file,
         line: change.line || 1,
