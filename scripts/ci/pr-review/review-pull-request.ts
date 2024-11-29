@@ -16,16 +16,22 @@ const prReviewResponse = z.object({
     .optional(),
 });
 
-async function reviewPullRequest(diffContent: string) {
+async function reviewPullRequest(diffContent: string, issueContext: string) {
   const completion = await client.beta.chat.completions.parse({
     model: "gpt-4o",
     messages: [
       {
         role: "system",
         content:
-          "You are a senior code reviewer. Review the provided pull request diff and determine if it should be approved or not. Consider code quality, potential bugs, and best practices.",
+          "You are a senior code reviewer. Compare the provided pull request diff to the issue and \
+determine if it should be approved or not. The issue context is the acceptance criteria of the \
+Pull-Request. If the diff doesn't address the content of the issue, request changes. If it does, \
+approve. If you don't know, approve.",
       },
-      { role: "user", content: diffContent },
+      {
+        role: "user",
+        content: `diffContent: ${diffContent}\nissueContext: ${issueContext}`,
+      },
     ],
     response_format: zodResponseFormat(prReviewResponse, "review"),
   });
