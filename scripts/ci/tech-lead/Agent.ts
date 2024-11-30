@@ -62,7 +62,6 @@ export default class Agent {
     while (true) {
       const completion = await this.client.chat.completions.create({
         model: "gpt-4o",
-        tools: this.tools,
         messages: [...this.messages, ...messages],
         stream: true,
       });
